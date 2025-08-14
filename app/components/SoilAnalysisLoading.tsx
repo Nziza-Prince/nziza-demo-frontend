@@ -12,6 +12,7 @@ const { width } = Dimensions.get('window');
 export default function SoilAnalysisLoading({ method, onComplete }: SoilAnalysisLoadingProps) {
     const scanLineAnim = useRef(new Animated.Value(0)).current;
     const fadeAnim = useRef(new Animated.Value(0)).current;
+    const pulseAnim = useRef(new Animated.Value(1)).current;
 
     useEffect(() => {
         // Fade in animation
@@ -37,15 +38,35 @@ export default function SoilAnalysisLoading({ method, onComplete }: SoilAnalysis
             ])
         );
 
-        scanAnimation.start();
+        // Pulse animation for camera analysis
+        const pulseAnimation = Animated.loop(
+            Animated.sequence([
+                Animated.timing(pulseAnim, {
+                    toValue: 1.2,
+                    duration: 1000,
+                    useNativeDriver: true,
+                }),
+                Animated.timing(pulseAnim, {
+                    toValue: 1,
+                    duration: 1000,
+                    useNativeDriver: true,
+                }),
+            ])
+        );
 
-        // Simulate analysis completion after 5 seconds
+        scanAnimation.start();
+        if (method === 'camera') {
+            pulseAnimation.start();
+        }
+
+        // Simulate analysis completion after 60 seconds (1 minute)
         const timer = setTimeout(() => {
             onComplete();
-        }, 5000);
+        }, 60000);
 
         return () => {
             scanAnimation.stop();
+            pulseAnimation.stop();
             clearTimeout(timer);
         };
     }, []);
@@ -55,13 +76,33 @@ export default function SoilAnalysisLoading({ method, onComplete }: SoilAnalysis
     };
 
     const getMethodTitle = () => {
-        return method === 'camera' ? 'Image Analysis' : 'Sensor Data Analysis';
+        return method === 'camera' ? 'Real-time Image Analysis' : 'Sensor Data Analysis';
     };
 
     const getMethodDescription = () => {
         return method === 'camera' 
-            ? 'Analyzing soil composition from image...' 
+            ? 'Processing captured soil image...' 
             : 'Processing sensor readings...';
+    };
+
+    const getProgressSteps = () => {
+        if (method === 'camera') {
+            return [
+                'Processing image data...',
+                'Detecting soil composition...',
+                'Analyzing color patterns...',
+                'Identifying soil type...',
+                'Generating recommendations...'
+            ];
+        } else {
+            return [
+                'Processing sensor data...',
+                'Analyzing soil properties...',
+                'Calculating nutrient levels...',
+                'Evaluating soil conditions...',
+                'Generating recommendations...'
+            ];
+        }
     };
 
     return (
@@ -75,10 +116,19 @@ export default function SoilAnalysisLoading({ method, onComplete }: SoilAnalysis
                     {/* Scanner Frame */}
                     <View className="border-4 border-[#0B4D26] rounded-lg p-4 mb-6">
                         <View className="w-64 h-48 bg-gray-100 rounded relative overflow-hidden">
-                            {/* Sample Image Placeholder */}
+                            {/* Real Camera Image Placeholder */}
                             <View className="absolute inset-0 bg-gradient-to-br from-yellow-200 to-brown-200 items-center justify-center">
-                                <Ionicons name="image" size={48} color="#8B4513" />
-                                <Text className="text-brown-800 mt-2 font-medium">Soil Sample</Text>
+                                {method === 'camera' ? (
+                                    <Animated.View style={{ transform: [{ scale: pulseAnim }] }}>
+                                        <Ionicons name="camera" size={48} color="#8B4513" />
+                                        <Text className="text-brown-800 mt-2 font-medium text-center">Live Image</Text>
+                                    </Animated.View>
+                                ) : (
+                                    <>
+                                        <Ionicons name="analytics" size={48} color="#8B4513" />
+                                        <Text className="text-brown-800 mt-2 font-medium">Sensor Data</Text>
+                                    </>
+                                )}
                             </View>
                             
                             {/* Scanning Line */}
@@ -119,13 +169,7 @@ export default function SoilAnalysisLoading({ method, onComplete }: SoilAnalysis
                     </Text>
                     
                     <View className="space-y-3">
-                        {[
-                            'Initializing scanner...',
-                            'Detecting soil texture...',
-                            'Analyzing color composition...',
-                            'Identifying nutrient patterns...',
-                            'Generating recommendations...'
-                        ].map((step, index) => (
+                        {getProgressSteps().map((step, index) => (
                             <View key={index} className="flex-row items-center">
                                 <View className="w-6 h-6 bg-green-400 rounded-full items-center justify-center mr-3">
                                     <Ionicons name="checkmark" size={16} color="white" />
