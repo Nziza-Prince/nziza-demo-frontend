@@ -51,6 +51,7 @@ export default function RootLayout() {
                 <Stack.Screen name="ImageCapture" options={{ headerShown: false }} />
                 <Stack.Screen name="camera-demo" options={{ headerShown: false }} />
                 <Stack.Screen name="demo-navigation" options={{ headerShown: false }} />
+                <Stack.Screen name="components/RealCamera" options={{ headerShown: false }} />
                 <Stack.Screen name="+not-found" />
             </Stack>
             <StatusBar style="auto" />

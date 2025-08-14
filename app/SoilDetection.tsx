@@ -27,8 +27,8 @@ export default function SoilDetection() {
     };
 
     const handleRealTimeScan = () => {
-        // Navigate to camera for real-time scanning
-        router.push('/camera-demo');
+        // Navigate to real camera for real-time scanning
+        router.push('/components/RealCamera');
     };
 
     const handleAnalysisComplete = () => {
